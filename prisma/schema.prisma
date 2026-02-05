@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String
+  isActive  Boolean  @default(true)
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  servicesAssigned Service[] @relation("AssignedServices")
+  servicesClient   Service[] @relation("ClientServices")
+}
+
+enum Role {
+  RH
+  EJECUTIVO
+  CLIENTE
+  RELO
+}
+
+model Service {
+  id          String        @id @default(uuid())
+  name        String
+  status      ServiceStatus @default(PENDIENTE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  assignedTo  User? @relation("AssignedServices", fields: [assignedToId], references: [id])
+  assignedToId String?
+
+  client      User? @relation("ClientServices", fields: [clientId], references: [id])
+  clientId    String?
+
+  comments    Comment[]
+}
+
+enum ServiceStatus {
+  PENDIENTE
+  EN_PROCESO
+  FINALIZADO
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  service   Service  @relation(fields: [serviceId], references: [id])
+  serviceId String
+}
+
